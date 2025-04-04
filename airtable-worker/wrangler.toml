@@ -1,4 +1,5 @@
-name = "airtable-worker"
+name = "riggg-app"
 main = "index.js"
 compatibility_date = "2024-01-01"
-workers_dev = true
+account_id = "668e17a20f4bc5457560a25cc06cb2ac"
+route = "https://airtable.riggg.app/*"
