@@ -1,70 +1,307 @@
 {
   "openapi": "3.1.0",
-  "info": { "title": "Riggg Frame.io Tools", "version": "1.1.0" },
-  "servers": [ { "url": "https://video.riggg.app" } ],
+  "info": {
+    "title": "Riggg Frame.io Tools",
+    "version": "2.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://video.riggg.app"
+    }
+  ],
   "paths": {
-    "/get-projects": {
+    "/projects": {
       "get": {
+        "summary": "List all projects",
         "operationId": "getProjects",
-        "summary": "List all Frame.io project names and IDs",
-        "parameters": [
-          {
-            "name": "page",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "integer", "default": 1 },
-            "description": "Page number of paginated results"
+        "responses": {
+          "200": {
+            "description": "List of Frame.io projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "name": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
           }
-        ],
-        "responses": { "200": { "description": "List of Frame.io projects (names and IDs only)" } }
+        }
       }
     },
-    "/get-project-folders": {
+    "/projects/{project_id}/folders": {
       "get": {
+        "summary": "Get folders in a project",
         "operationId": "getProjectFolders",
-        "summary": "List top-level folders in a Frame.io project",
         "parameters": [
           {
             "name": "project_id",
-            "in": "query",
+            "in": "path",
             "required": true,
-            "schema": { "type": "string" },
-            "description": "The ID of the project"
+            "schema": { "type": "string" }
           }
         ],
-        "responses": { "200": { "description": "List of folders in the project" } }
+        "responses": {
+          "200": {
+            "description": "List of folders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "name": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/get-subfolders": {
+    "/asset/{asset_id}/hierarchy": {
       "get": {
-        "operationId": "getSubfolders",
-        "summary": "List subfolders inside a folder",
+        "summary": "Get asset metadata and folder path",
+        "operationId": "getAssetWithHierarchy",
         "parameters": [
           {
-            "name": "folder_id",
-            "in": "query",
+            "name": "asset_id",
+            "in": "path",
             "required": true,
-            "schema": { "type": "string" },
-            "description": "The ID of the parent folder"
+            "schema": { "type": "string" }
           }
         ],
-        "responses": { "200": { "description": "List of subfolders" } }
+        "responses": {
+          "200": {
+            "description": "Asset details with folder path",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "asset": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "name": { "type": "string" },
+                        "type": { "type": "string" },
+                        "metadata": { "type": "object" }
+                      }
+                    },
+                    "folderPath": {
+                      "type": "array",
+                      "items": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     },
-    "/get-files-and-review-links": {
+    "/search": {
       "get": {
-        "operationId": "getFilesAndReviewLinks",
-        "summary": "List files and their review links in a folder",
+        "summary": "Search for assets",
+        "operationId": "searchAssets",
         "parameters": [
           {
-            "name": "folder_id",
+            "name": "q",
             "in": "query",
             "required": true,
-            "schema": { "type": "string" },
-            "description": "The ID of the folder containing the files"
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "team_id",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
           }
         ],
-        "responses": { "200": { "description": "List of files and review links" } }
+        "responses": {
+          "200": {
+            "description": "List of matching assets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "name": { "type": "string" },
+                      "type": { "type": "string" },
+                      "project_id": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/review-links": {
+      "post": {
+        "summary": "Create review link for asset(s)",
+        "operationId": "createReviewLink",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["asset_ids"],
+                "properties": {
+                  "asset_ids": {
+                    "type": "array",
+                    "items": { "type": "string" }
+                  },
+                  "name": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Review link created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "url": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/assets/{asset_id}/presentation": {
+      "post": {
+        "summary": "Create a presentation link",
+        "operationId": "createPresentationLink",
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presentation link created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "url": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/review-links/list": {
+      "get": {
+        "summary": "List review links in a project",
+        "operationId": "listReviewLinks",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of review links",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": { "type": "string" },
+                      "name": { "type": "string" },
+                      "short_url": { "type": "string" },
+                      "item_count": { "type": "integer" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/projects/{project_id}/review-links/search": {
+      "get": {
+        "summary": "Find a review link for asset by name",
+        "operationId": "findAssetReviewLink",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "asset_name",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Review link containing asset (if found)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }
