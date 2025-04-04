@@ -1,0 +1,71 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Riggg Frame.io Tools", "version": "1.1.0" },
+  "servers": [ { "url": "https://video.riggg.app" } ],
+  "paths": {
+    "/get-projects": {
+      "get": {
+        "operationId": "getProjects",
+        "summary": "List all Frame.io project names and IDs",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 1 },
+            "description": "Page number of paginated results"
+          }
+        ],
+        "responses": { "200": { "description": "List of Frame.io projects (names and IDs only)" } }
+      }
+    },
+    "/get-project-folders": {
+      "get": {
+        "operationId": "getProjectFolders",
+        "summary": "List top-level folders in a Frame.io project",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The ID of the project"
+          }
+        ],
+        "responses": { "200": { "description": "List of folders in the project" } }
+      }
+    },
+    "/get-subfolders": {
+      "get": {
+        "operationId": "getSubfolders",
+        "summary": "List subfolders inside a folder",
+        "parameters": [
+          {
+            "name": "folder_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The ID of the parent folder"
+          }
+        ],
+        "responses": { "200": { "description": "List of subfolders" } }
+      }
+    },
+    "/get-files-and-review-links": {
+      "get": {
+        "operationId": "getFilesAndReviewLinks",
+        "summary": "List files and their review links in a folder",
+        "parameters": [
+          {
+            "name": "folder_id",
+            "in": "query",
+            "required": true,
+            "schema": { "type": "string" },
+            "description": "The ID of the folder containing the files"
+          }
+        ],
+        "responses": { "200": { "description": "List of files and review links" } }
+      }
+    }
+  }
+}

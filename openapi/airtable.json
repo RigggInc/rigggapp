@@ -1,0 +1,80 @@
+{
+  "openapi": "3.1.0",
+  "info": { "title": "Riggg Airtable Actions", "version": "1.0.0" },
+  "servers": [ { "url": "https://airtable.riggg.app" } ],
+  "paths": {
+    "/get-schema": {
+      "get": { "operationId": "getSchema", "summary": "Fetch Airtable base schema", "responses": { "200": { "description": "Base schema fetched successfully" } } }
+    },
+    "/get-records": {
+      "get": {
+        "operationId": "getRecords",
+        "summary": "Fetch records from a table",
+        "parameters": [
+          { "name": "table", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "maxRecords", "in": "query", "schema": { "type": "integer" } },
+          { "name": "filterByFormula", "in": "query", "schema": { "type": "string" } },
+          { "name": "sort", "in": "query", "schema": { "type": "string" } },
+          { "name": "view", "in": "query", "schema": { "type": "string" } },
+          { "name": "fields", "in": "query", "schema": { "type": "array", "items": { "type": "string" } }, "style": "form", "explode": true }
+        ],
+        "responses": { "200": { "description": "Records fetched successfully" } }
+      }
+    },
+    "/create-record": {
+      "post": {
+        "operationId": "createRecord",
+        "summary": "Create a new record (flattened fields)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["table"],
+                "properties": {
+                  "table": { "type": "string" },
+                  "session_TitleOverride": { "type": "string" },
+                  "session_Type": { "type": "object", "properties": { "name": { "type": "string" } } },
+                  "session_Stage": { "type": "object", "properties": { "name": { "type": "string" } } },
+                  "session_ProgramName": { "type": "array", "items": { "type": "string" } },
+                  "session_DateScheduledStart": { "type": "string" }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Record created successfully" } }
+      }
+    },
+    "/update-record": {
+      "patch": {
+        "operationId": "updateRecord",
+        "summary": "Update a record (flattened fields)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["table", "recordId"],
+                "properties": {
+                  "table": { "type": "string" },
+                  "recordId": { "type": "string" },
+                  "session_TitleOverride": { "type": "string" },
+                  "session_ProgramName": { "type": "array", "items": { "type": "string" } },
+                  "session_Type": { "type": "string" },
+                  "session_Stage": { "type": "string" },
+                  "session_DateScheduledStart": { "type": "string" }
+                },
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Record updated successfully" } }
+      }
+    }
+  }
+}
