@@ -16,14 +16,15 @@ jobs:
       - name: Deploy Slack Worker
         run: |
           cd slack-worker
-          wrangler deploy --env production --minify
+          wrangler deploy --minify
 
       - name: Deploy Frame.io Worker
         run: |
           cd ../frameio-worker
-          wrangler deploy --env production --minify
+          wrangler deploy --minify
 
       - name: Deploy Airtable Worker
         run: |
           cd ../airtable-worker
-          wrangler deploy --env production --minify
+          wrangler deploy --minify
+
