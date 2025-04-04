@@ -17,14 +17,19 @@ jobs:
         run: |
           cd slack-worker
           wrangler deploy --minify
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Deploy Frame.io Worker
         run: |
           cd ../frameio-worker
           wrangler deploy --minify
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Deploy Airtable Worker
         run: |
           cd ../airtable-worker
           wrangler deploy --minify
-
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
