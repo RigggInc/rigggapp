@@ -37,8 +37,8 @@
     },
     "/projects/{project_id}/folders": {
       "get": {
-        "summary": "Get folders in a project",
-        "operationId": "getProjectFolders",
+        "summary": "Get all folders in a project (recursive)",
+        "operationId": "getProjectFoldersRecursive",
         "parameters": [
           {
             "name": "project_id",
@@ -49,7 +49,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of folders",
+            "description": "List of all folders (including subfolders)",
             "content": {
               "application/json": {
                 "schema": {
@@ -59,94 +59,6 @@
                     "properties": {
                       "id": { "type": "string" },
                       "name": { "type": "string" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/asset/{asset_id}/hierarchy": {
-      "get": {
-        "summary": "Get asset metadata and folder path",
-        "operationId": "getAssetWithHierarchy",
-        "parameters": [
-          {
-            "name": "asset_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Asset details with folder path",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "asset": {
-                      "type": "object",
-                      "properties": {
-                        "id": { "type": "string" },
-                        "name": { "type": "string" },
-                        "type": { "type": "string" },
-                        "metadata": { "type": "object" }
-                      }
-                    },
-                    "folderPath": {
-                      "type": "array",
-                      "items": { "type": "string" }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/search": {
-      "get": {
-        "summary": "Search for assets",
-        "operationId": "searchAssets",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "project_id",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" }
-          },
-          {
-            "name": "team_id",
-            "in": "query",
-            "required": false,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of matching assets",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "id": { "type": "string" },
-                      "name": { "type": "string" },
-                      "type": { "type": "string" },
-                      "project_id": { "type": "string" }
                     }
                   }
                 }
@@ -189,36 +101,6 @@
         "responses": {
           "200": {
             "description": "Review link created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "id": { "type": "string" },
-                    "url": { "type": "string" }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/assets/{asset_id}/presentation": {
-      "post": {
-        "summary": "Create a presentation link",
-        "operationId": "createPresentationLink",
-        "parameters": [
-          {
-            "name": "asset_id",
-            "in": "path",
-            "required": true,
-            "schema": { "type": "string" }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Presentation link created",
             "content": {
               "application/json": {
                 "schema": {
