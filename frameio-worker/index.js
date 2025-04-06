@@ -57,11 +57,29 @@ class FrameIoClient {
     return res.json();
   }
 
-  async listFoldersRecursive(folderId) {
-    const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=folder`, { headers: this.headers });
-    if (!res.ok) throw new Error(`Failed to list subfolders for folder ${folderId}`);
+  async listTopLevelFolders(projectId) {
+    const project = await this.getProject(projectId);
+    const root = project.root_asset_id;
+
+    if (!root) throw new Error(`Project ${projectId} has no root_asset_id`);
+
+    const res = await this._fetchWithRetry(`${API_BASE}/assets/${root}/children?type=folder`, {
+      headers: this.headers
+    });
+
+    if (!res.ok) throw new Error("Failed to list top-level folders");
     const folders = await res.json();
 
+    return folders.map(f => ({ id: f.id, name: f.name }));
+  }
+
+  async listFoldersRecursive(folderId) {
+    const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=folder`, {
+      headers: this.headers
+    });
+
+    if (!res.ok) throw new Error(`Failed to list subfolders for ${folderId}`);
+    const folders = await res.json();
     let allFolders = folders.map(f => ({ id: f.id, name: f.name }));
 
     for (let folder of folders) {
@@ -72,42 +90,36 @@ class FrameIoClient {
     return allFolders;
   }
 
+  async getAllFolders(projectId, recursive = false) {
+    const project = await this.getProject(projectId);
+    const root = project.root_asset_id;
+
+    if (!root) throw new Error(`Project ${projectId} has no root_asset_id`);
+
+    if (recursive) {
+      return await this.listFoldersRecursive(root);
+    } else {
+      return await this.listTopLevelFolders(projectId);
+    }
+  }
+
   async listAssets(folderId) {
+    console.log(`Fetching assets for folder ID: ${folderId}`);
+    
     const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=file`, { headers: this.headers });
     if (!res.ok) throw new Error(`Failed to list assets for folder ${folderId}`);
+    
     const assets = await res.json();
+    console.log(`Assets for ${folderId}:`, assets);
 
     return assets.map(a => ({ id: a.id, name: a.name }));
-  }
-
-  async createReviewLink(projectId, assetIds, name = "Riggg Review Link") {
-    const res = await this._fetchWithRetry(`${API_BASE}/projects/${projectId}/review_links`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify({ name, expires_at: "2025-04-04T21:31:01.164615Z" })
-    });
-    if (!res.ok) throw new Error("Failed to create review link");
-    const link = await res.json();
-
-    const addRes = await this._fetchWithRetry(`${API_BASE}/review_links/${link.id}/assets`, {
-      method: "POST",
-      headers: this.headers,
-      body: JSON.stringify({ asset_ids: assetIds })
-    });
-    if (!addRes.ok) throw new Error("Failed to add assets to review link");
-
-    return link;
-  }
-
-  async listReviewLinks(projectId) {
-    const res = await this._fetchWithRetry(`${API_BASE}/projects/${projectId}/review_links`, { headers: this.headers });
-    if (!res.ok) throw new Error("Failed to list review links");
-    return res.json();
   }
 
   async getFullHierarchyWithAssets(projectId) {
     const project = await this.getProject(projectId);
     const root = project.root_asset_id;
+
+    if (!root) throw new Error(`Project ${projectId} has no root_asset_id`);
 
     const folders = await this.listFoldersRecursive(root);
 
@@ -125,20 +137,6 @@ class FrameIoClient {
       hierarchy
     };
   }
-
-  async createReviewLinksForAssets(projectId) {
-    const hierarchy = await this.getFullHierarchyWithAssets(projectId);
-
-    const reviewLinks = [];
-    for (let folder of hierarchy.hierarchy) {
-      for (let asset of folder.assets) {
-        const link = await this.createReviewLink(projectId, [asset.id], `Review Link for ${asset.name}`);
-        reviewLinks.push({ asset: asset.name, link });
-      }
-    }
-
-    return reviewLinks;
-  }
 }
 
 export default {
@@ -146,6 +144,7 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
     const projectId = url.searchParams.get("project_id");
+    const recursive = url.searchParams.get("recursive") === "true";
 
     const client = new FrameIoClient(
       env.FRAMEIO_TOKEN,
@@ -155,16 +154,16 @@ export default {
 
     try {
       if (path === "/projects") {
-        return new Response(JSON.stringify(await client.listProjects()), { headers: { "Content-Type": "application/json" } });
+        const projects = await client.listProjects();
+        return new Response(JSON.stringify(projects), { headers: { "Content-Type": "application/json" } });
       }
 
-      if (path === "/review-links") {
-        return new Response(JSON.stringify(await client.listReviewLinks(projectId)), { headers: { "Content-Type": "application/json" } });
-      }
-
-      if (path === "/create-review-links") {
-        const reviewLinks = await client.createReviewLinksForAssets(projectId);
-        return new Response(JSON.stringify(reviewLinks), { headers: { "Content-Type": "application/json" } });
+      if (path === "/folders") {
+        if (!projectId) {
+          return new Response("Missing project_id", { status: 400 });
+        }
+        const folders = await client.getAllFolders(projectId, recursive);
+        return new Response(JSON.stringify(folders), { headers: { "Content-Type": "application/json" } });
       }
 
       return new Response("OK: Frame.io Worker is up", { status: 200 });
