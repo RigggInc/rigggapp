@@ -16,6 +16,7 @@ class FrameIoClient {
     while (true) {
       try {
         const response = await fetch(url, options);
+        await new Promise(resolve => setTimeout(resolve, 100)); // Add a 100ms delay
         if (response.status !== 429) {
           if (!response.ok) {
             console.error(`Error: ${response.status} - ${await response.text()} for ${url}`);
@@ -74,12 +75,23 @@ class FrameIoClient {
   }
 
   async listFoldersRecursive(folderId) {
-    const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=folder`, {
-      headers: this.headers
-    });
-
-    if (!res.ok) throw new Error(`Failed to list subfolders for ${folderId}`);
+    console.log(`Fetching subfolders for folder ID: ${folderId}`);
+    
+    const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=folder`, { headers: this.headers });
+    if (!res.ok) {
+      console.error(`Failed to fetch subfolders for folder ID: ${folderId}`);
+      console.error(`Response: ${await res.text()}`);
+      throw new Error(`Failed to list subfolders for folder ${folderId}`);
+    }
+    
     const folders = await res.json();
+    console.log(`Subfolders for ${folderId}:`, folders);
+
+    if (!folders || folders.length === 0) {
+      console.log(`No subfolders found for folder ${folderId}`);
+      return [];
+    }
+
     let allFolders = folders.map(f => ({ id: f.id, name: f.name }));
 
     for (let folder of folders) {
@@ -107,12 +119,16 @@ class FrameIoClient {
     console.log(`Fetching assets for folder ID: ${folderId}`);
     
     const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=file`, { headers: this.headers });
-    if (!res.ok) throw new Error(`Failed to list assets for folder ${folderId}`);
+    if (!res.ok) {
+      console.error(`Failed to fetch assets for folder ID: ${folderId}`);
+      console.error(`Response: ${await res.text()}`);
+      throw new Error(`Failed to list assets for folder ${folderId}`);
+    }
     
     const assets = await res.json();
     console.log(`Assets for ${folderId}:`, assets);
 
-    return assets.map(a => ({ id: a.id, name: a.name }));
+    return assets.map(a => ({ id: a.id, name: a.name, type: a.type }));
   }
 
   async getFullHierarchyWithAssets(projectId) {
@@ -136,6 +152,25 @@ class FrameIoClient {
       project: { id: project.id, name: project.name },
       hierarchy
     };
+  }
+
+  async createReviewLink(projectId, assetIds, name = "Review Link") {
+    const res = await this._fetchWithRetry(`${API_BASE}/projects/${projectId}/review_links`, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify({ name, expires_at: "2025-04-04T21:31:01.164615Z" })
+    });
+    if (!res.ok) throw new Error("Failed to create review link");
+    const link = await res.json();
+
+    const addRes = await this._fetchWithRetry(`${API_BASE}/review_links/${link.id}/assets`, {
+      method: "POST",
+      headers: this.headers,
+      body: JSON.stringify({ asset_ids: assetIds })
+    });
+    if (!addRes.ok) throw new Error("Failed to add assets to review link");
+
+    return link;
   }
 }
 
