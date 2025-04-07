@@ -43,7 +43,7 @@ export default {
           const formData = await request.text();
 
           ctx.waitUntil(
-            fetch("https://hooks.zapier.com/hooks/catch/19956063/2cy0eg2/", {
+            fetch(env.ZAPIER_WEBHOOK_URL, { // Use the secret here
               method: "POST",
               headers: { "Content-Type": "application/x-www-form-urlencoded" },
               body: formData
@@ -80,7 +80,7 @@ export default {
 
             // Fire to Zapier
             ctx.waitUntil(
-              fetch("https://hooks.zapier.com/hooks/catch/19956063/2cy0eg2/", {
+              fetch(env.ZAPIER_WEBHOOK_URL, { // Use the secret here
                 method: "POST",
                 headers: { "Content-Type": "application/x-www-form-urlencoded" },
                 body: formatted

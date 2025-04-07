@@ -115,10 +115,10 @@ class FrameIoClient {
     }
   }
 
-  async listAssets(folderId) {
-    console.log(`Fetching assets for folder ID: ${folderId}`);
+  async listAssets(folderId, page = 1) {
+    console.log(`Fetching assets for folder ID: ${folderId}, page: ${page}`);
     
-    const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=file`, { headers: this.headers });
+    const res = await this._fetchWithRetry(`${API_BASE}/assets/${folderId}/children?type=file&page=${page}`, { headers: this.headers });
     if (!res.ok) {
       console.error(`Failed to fetch assets for folder ID: ${folderId}`);
       console.error(`Response: ${await res.text()}`);
@@ -126,9 +126,21 @@ class FrameIoClient {
     }
     
     const assets = await res.json();
-    console.log(`Assets for ${folderId}:`, assets);
+    console.log(`Assets for ${folderId}, page ${page}:`, assets);
 
-    return assets.map(a => ({ id: a.id, name: a.name, type: a.type }));
+    if (!assets || assets.length === 0) {
+      return [];
+    }
+
+    let allAssets = assets.map(a => ({ id: a.id, name: a.name, type: a.type }));
+
+    // Check if there are more pages
+    if (assets.length === 100) { // Assuming 100 is the page size
+      const nextPageAssets = await this.listAssets(folderId, page + 1);
+      allAssets = allAssets.concat(nextPageAssets);
+    }
+
+    return allAssets;
   }
 
   async getFullHierarchyWithAssets(projectId) {
