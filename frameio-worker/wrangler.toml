@@ -3,3 +3,7 @@ main = "index.js"
 compatibility_date = "2024-01-01"
 account_id = "668e17a20f4bc5457560a25cc06cb2ac"
 route = "https://video.riggg.app/*"
+
+[observability]
+enabled = true
+head_sampling_rate = 1 # optional. default = 1.

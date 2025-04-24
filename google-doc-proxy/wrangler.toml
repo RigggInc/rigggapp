@@ -3,3 +3,6 @@ main = "index.js"
 compatibility_date = "2025-04-20"
 account_id = "668e17a20f4bc5457560a25cc06cb2ac"
 route = "https://docs-proxy.riggg.app/*"
+
+[vars]
+TEMPLATE_DOC_ID = "1AoNqYQLtBD3jO4zd9w3dgD5i9lnkV3FklZ1tUmz0GqY"
