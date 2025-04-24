@@ -11,6 +11,8 @@ class FrameIoClient {
     };
   }
 
+  
+
   async _fetchWithRetry(url, options = {}, maxRetries = 3) {
     let attempt = 0;
     while (true) {
@@ -188,6 +190,11 @@ class FrameIoClient {
 
 export default {
   async fetch(request, env) {
+    const authHeader = request.headers.get("x-worker-auth");
+    if (authHeader !== env.WORKER_AUTH_TOKEN) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     const url = new URL(request.url);
     const path = url.pathname;
     const projectId = url.searchParams.get("project_id");
@@ -220,3 +227,4 @@ export default {
     }
   }
 };
+

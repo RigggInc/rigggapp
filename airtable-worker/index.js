@@ -1,5 +1,10 @@
 export default {
   async fetch(request, env, ctx) {
+    const authHeader = request.headers.get("x-worker-auth");
+    if (authHeader !== env.WORKER_AUTH_TOKEN) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
     const url = new URL(request.url);
     const pathname = url.pathname;
 
@@ -10,6 +15,7 @@ export default {
       "Authorization": `Bearer ${AIRTABLE_API_KEY}`,
       "Content-Type": "application/json"
     };
+
 
     // 🔍 Get schema
     if (pathname === "/get-schema") {
