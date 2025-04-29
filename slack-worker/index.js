@@ -1,15 +1,16 @@
 export default {
   async fetch(request, env, ctx) {
-    // 🔐 Auth check — required for all routes
-    const authHeader = request.headers.get("x-worker-auth");
-    if (authHeader !== env.WORKER_AUTH_TOKEN) {
-      return new Response("Unauthorized", { status: 401 });
-    }
     const url = new URL(request.url);
     const pathname = url.pathname;
 
     // 📢 /slack-post — Send interactive message to Slack
     if (pathname === "/slack-post" && request.method === "POST") {
+      // 🔐 Auth check ONLY for /slack-post
+      const authHeader = request.headers.get("x-worker-auth");
+      if (authHeader !== env.WORKER_AUTH_TOKEN) {
+        return new Response("Unauthorized", { status: 401 });
+      }
+
       try {
         const body = await request.json();
         const { channel, text, blocks, username = "Riggg Gnomes", emoji = ":gnome:" } = body;
